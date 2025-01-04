@@ -1,47 +1,51 @@
-# Subtitle Translator Tool
+# Subtitle Translator
 
 ## Introduction
 
-This is an asynchronous subtitle translation tool based on Python, designed to help users translate subtitle files from one language to another. The tool supports batch translation, context-aware translation, translation quality evaluation, and provides a caching mechanism to improve translation efficiency.
+A Python-based asynchronous subtitle translation tool designed to help users translate subtitle files from one language to another. The tool supports batch translation, context-aware translation, translation quality assessment, and includes a caching mechanism to improve translation efficiency.
 
 ## Features
 
-- **Batch Translation**: Supports translating subtitle files in chunks to improve efficiency.
-- **Context-Aware Translation**: Includes context information during translation to enhance accuracy.
-- **Translation Quality Evaluation**: Uses LLMs (such as ChatGPT) to evaluate the quality of translations and provide revision suggestions.
-- **Caching Mechanism**: Supports caching of translation results to avoid redundant translations of the same content.
-- **Punctuation Handling**: Optionally removes punctuation at the end of subtitles.
-- **Concurrency Control**: Allows control over the number of concurrent translation tasks to prevent resource exhaustion.
+- **Batch Translation**: Supports translating subtitle files in chunks for improved efficiency.
+- **Context-Aware Translation**: Includes context information during translation for better accuracy.
+- **Quality Assessment**: Uses LLM (like ChatGPT) to evaluate translation quality and provide improvement suggestions.
+- **Caching Mechanism**: Caches translation results to avoid repeated translations.
+- **Punctuation Handling**: Supports automatic removal of ending punctuation in subtitles (optional).
+- **Concurrency Control**: Manages concurrent translation tasks to prevent resource exhaustion.
 
 ## Installation
 
-### Dependencies
+### Prerequisites
 
 - Python 3.7 or higher
-- Standard libraries such as `asyncio`, `re`, `pathlib`, `subprocess`, and `logging`
-- `guru` [command-line tool](https://github.com/shafreeck/guru) (for interacting with LLMs)
+- Standard libraries: `asyncio`, `re`, `pathlib`, `subprocess`, `logging`
+- `guru` [CLI tool](https://github.com/shafreeck/guru) (for LLM interaction)
 
-### Installation Steps
+### Setup
 
-1. Clone or download this repository to your local machine.
-2. Ensure Python 3.7 or higher is installed.
-3. Install the `guru` [command-line tool](https://github.com/shafreeck/guru) (refer to the official `guru` documentation for installation instructions).
+1. Clone or download this repository.
+2. Ensure Python 3.7+ is installed.
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Install the `guru` [CLI tool](https://github.com/shafreeck/guru) (refer to `guru`'s official documentation).
 
 ## Usage
 
-### Command-Line Arguments
+### Command Line Arguments
 
 ```bash
 python subtitle_translator.py <input_file> <output_file> [options]
 ```
 
-- `input_file`: Path to the input subtitle file (supports `.srt` format).
-- `output_file`: Path to the output subtitle file.
-- `--chunk-size`: Number of subtitles to translate at a time (default: 30).
-- `--max-concurrent`: Maximum number of concurrent tasks (default: 10).
-- `--context-size`: Number of contextual subtitles to include during translation (default: 0).
-- `--split-retry`: Split tasks after every N retries (default: 1).
-- `--keep-punctuation`: Retain punctuation at the end of subtitles (default is to remove it).
+- `input_file`: Input subtitle file path (supports `.srt` format).
+- `output_file`: Output subtitle file path.
+- `--chunk-size`: Number of subtitles per translation batch (default: 30).
+- `--max-concurrent`: Maximum concurrent translations (default: 10).
+- `--context-size`: Number of context subtitles to include (default: 0).
+- `--split-retry`: Split task after N retries (default: 1).
+- `--keep-punctuation`: Keep ending punctuation in subtitles (default: false).
 
 ### Example
 
@@ -51,43 +55,43 @@ python subtitle_translator.py input.srt output.srt --chunk-size 20 --max-concurr
 
 ### Output
 
-After translation, the results will be saved to the specified output file. The program will display real-time progress and quality evaluation results.
+Translation results are saved to the specified output file. The program displays real-time progress and quality assessment results.
 
-## Configuration File
+## Configuration
 
-This tool is configured via command-line arguments and does not require an additional configuration file.
+The tool is configured through command-line arguments, no additional configuration files needed.
 
-## Notes
+## Important Notes
 
-1. **Translation Quality**: The quality of translation depends on the performance of the LLM (e.g., ChatGPT) used. It is recommended to manually review the translation results before use.
-2. **Caching Mechanism**: Translation results are cached in the `.translate_cache` directory to avoid redundant translations. If re-translation is needed, manually delete the cache files.
-3. **Concurrency Control**: Set the `--max-concurrent` parameter appropriately based on system resources to avoid resource exhaustion.
+1. **Translation Quality**: Quality depends on the LLM (e.g., ChatGPT) being used. Manual review is recommended.
+2. **Caching**: Results are cached in `.translate_cache` directory. Delete cache files to force retranslation.
+3. **Concurrency**: Set `--max-concurrent` according to system resources to prevent overload.
 
-## Frequently Asked Questions (FAQ)
+## Troubleshooting
 
-### 1. Translation Results Are Not as Expected
+### 1. Unexpected Translation Results
 
-- **Reason**: This may be due to insufficient context or unstable translation quality from the LLM.
-- **Solution**: Try increasing the `--context-size` parameter or manually adjust the translation results.
+- **Cause**: Insufficient context or LLM quality variation.
+- **Solution**: Try increasing `--context-size` or manually adjust translations.
 
 ### 2. Slow Translation Speed
 
-- **Reason**: This may be due to low concurrency settings or network latency.
-- **Solution**: Increase the `--max-concurrent` parameter appropriately or check the network connection.
+- **Cause**: Low concurrency settings or network latency.
+- **Solution**: Increase `--max-concurrent` or check network connection.
 
 ### 3. Large Cache Files
 
-- **Reason**: Cache files may occupy significant disk space after prolonged use.
-- **Solution**: Periodically clean up cache files in the `.translate_cache` directory.
+- **Cause**: Cache accumulation over time.
+- **Solution**: Periodically clean the `.translate_cache` directory.
 
-## Contribution
+## Contributing
 
 Issues and Pull Requests are welcome to improve this tool.
 
 ## License
 
-This project is licensed under the MIT License. For details, please refer to the [LICENSE](LICENSE) file.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ---
 
-**Note**: This tool relies on third-party LLM services (e.g., ChatGPT). Please comply with the terms of service and privacy policies of these services when using this tool.
+**Note**: This tool relies on third-party LLM services (like ChatGPT). Please comply with their terms of service and privacy policies.

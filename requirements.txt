@@ -1,0 +1,6 @@
+# Core dependencies
+asyncio>=3.4.3
+pathlib>=1.0.1
+
+# Optional but recommended
+typing>=3.7.4.3  # for type hints 

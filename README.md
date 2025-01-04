@@ -25,7 +25,11 @@
 
 1. 克隆或下载本仓库到本地。
 2. 确保已安装 Python 3.7 或更高版本。
-3. 安装 `guru` [命令行工具](https://github.com/shafreeck/guru)（具体安装方法请参考 `guru` 的官方文档）。
+3. 安装依赖：
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. 安装 `guru` [命令行工具](https://github.com/shafreeck/guru)（具体安装方法请参考 `guru` 的官方文档）。
 
 ## 使用方法
 
