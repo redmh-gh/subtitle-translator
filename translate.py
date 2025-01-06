@@ -595,7 +595,7 @@ async def main():
     parser.add_argument('--chunk-size', type=int, default=30, help='每次翻译的字幕数量(默认: 30)')
     parser.add_argument('--max-concurrent', type=int, default=10, help='最大并发数(默认: 10)')
     parser.add_argument('--context-size', type=int, default=0, help='翻译时包含的上下文字幕数量(默认: 0)')
-    parser.add_argument('--split-retry', type=int, default=1, help='每N次重试后拆分任务(默认: 1)')
+    parser.add_argument('--split-retry', type=int, default=3, help='每N次重试后拆分任务(默认: 3)')
     parser.add_argument('--keep-punctuation', action='store_true',
                    help='保留字幕末尾的标点符号（默认会去除）')
     args = parser.parse_args()
