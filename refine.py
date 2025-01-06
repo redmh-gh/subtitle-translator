@@ -11,14 +11,20 @@ class SubtitleBlock:
     def word_count(self):
         return len(self.text.split())
     def split_by_punctuation(self, backward=False):
-        # 根据标点符号拆分为两部分
-        # 如果 forward 为 True，则从前往后拆分
-        # 如果 forward 为 False，则从后往前拆分
-        # 范围拆分后的文本列表
-
-        idx = self.text.find(',') if not backward else self.text.rfind(',')
-        if idx != -1:
-            return [self.text[:idx].strip(), self.text[idx+1:].strip()]
+        # 定义要查找的标点符号列表
+        punctuations = [',', '，', '；', ';']
+        
+        if not backward:
+            # 从前向后查找
+            for i, char in enumerate(self.text):
+                if char in punctuations:
+                    return [self.text[:i].strip(), self.text[i+1:].strip()]
+        else:
+            # 从后向前查找
+            for i in range(len(self.text) - 1, -1, -1):
+                if self.text[i] in punctuations:
+                    return [self.text[:i].strip(), self.text[i+1:].strip()]
+        
         return [self.text]
     def parse_ts(self, ts):
         h, m, s = ts.replace(',', '.').split(':')
@@ -32,9 +38,9 @@ class SubtitleBlock:
         return False
 
 class SubtitleRefiner:
-    def __init__(self, min_words, max_words, tolerance):
+    def __init__(self, min_words, max_length, tolerance):
         self.min_words = min_words
-        self.max_words = max_words  
+        self.max_length = max_length  
         self.tolerance = tolerance
     def parse_ts_range(self, ts_range):
         start, end = ts_range.split('-->')
@@ -77,8 +83,8 @@ class SubtitleRefiner:
             # avoid merge too many words
             current_parts = current.split_by_punctuation(backward=True)
             next_parts = next.split_by_punctuation(backward=False)
-            if current.word_count() + len(next_parts[0].split()) > self.max_words or \
-                next.word_count() + len(current_parts[len(current_parts)-1].split()) > self.max_words:
+            if len(current.text) + len(next_parts[0]) > self.max_length and \
+                len(next.text) + len(current_parts[len(current_parts)-1]) > self.max_length:
 
                 refined_blocks.append(current)
                 idx = nextIdx
@@ -132,11 +138,11 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('input_file', help='输入字幕文件路径')
     parser.add_argument('output_file', help='输出字幕文件路径')
-    parser.add_argument('--min_words', type=int, default=3)
-    parser.add_argument('--max_words', type=int, default=10)
+    parser.add_argument('--min-words', type=int, default=3)
+    parser.add_argument('--max-length', type=int, default=42)
     parser.add_argument('--tolerance', type=int, default=100)
     args = parser.parse_args()
-    refiner = SubtitleRefiner(min_words=args.min_words, max_words=args.max_words, tolerance=args.tolerance)
+    refiner = SubtitleRefiner(min_words=args.min_words, max_length=args.max_length, tolerance=args.tolerance)
     blocks = refiner.parse_subtitles(args.input_file)
     blocks = refiner.refine(blocks)
     out = Path(args.output_file)
