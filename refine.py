@@ -16,12 +16,12 @@ class SubtitleBlock:
             # 从前向后查找
             for i, char in enumerate(self.text):
                 if char in punctuations:
-                    return [self.text[:i].strip(), self.text[i+1:].strip()]
+                    return [t for t in [self.text[:i].strip(), self.text[i+1:].strip()] if t.strip() != '']
         else:
             # 从后向前查找
             for i in range(len(self.text) - 1, -1, -1):
                 if self.text[i] in punctuations:
-                    return [self.text[:i].strip(), self.text[i+1:].strip()]
+                    return [t for t in [self.text[:i].strip(), self.text[i+1:].strip()] if t.strip() != '']
         
         return [self.text]
     def parse_ts(self, ts):
@@ -81,7 +81,7 @@ class SubtitleRefiner:
             lines = file.readlines()
         idx = 0
         blocks = []
-        while idx + 3 < len(lines):
+        while idx + 2 < len(lines):
             id = lines[idx].strip()
             start, end = self.parse_ts_range(lines[idx+1])
             text = lines[idx+2].strip()
@@ -136,7 +136,7 @@ class SubtitleRefiner:
             # rerun split by punctuation again, because the text has been changed
             next_parts = next.split_by_punctuation(backward=False)
             tomerge = next_parts[0]
-            if self.word_count(tomerge) <= self.min_words and current.text != '':
+            if self.word_count(tomerge) <= self.min_words and current.text != '' and not current.text.endswith(('.', '?', '!', '。', '？', '！')):
                 print("merge to current subtitle:", current.text, "<-" ,tomerge, self.word_count(tomerge), self.max_words)
                 current.text = f"{current.text.strip()}{self.merge_delimiter}{tomerge.strip()}"
 
@@ -156,8 +156,12 @@ class SubtitleRefiner:
 
             idx = nextIdx
             nextIdx = idx + 1
-        if idx < len(blocks):
+
+        while idx < len(blocks):
+            print("append last subtitle:", blocks[idx].text)
             refined_blocks.append(blocks[idx])
+            idx += 1
+
         return refined_blocks
     def format_srt(self, blocks):
         return '\n'.join([f"{idx}\n{block.start} --> {block.end}\n{block.text}\n" for idx, block in enumerate(blocks, 1)])
@@ -167,7 +171,7 @@ def main():
     parser.add_argument('input_file', help='输入字幕文件路径')
     parser.add_argument('output_file', help='输出字幕文件路径')
     parser.add_argument('--min-words', type=int, default=3)
-    parser.add_argument('--max-words', type=int, default=10)
+    parser.add_argument('--max-words', type=int, default=15)
     parser.add_argument('--tolerance', type=int, default=100)
     parser.add_argument('--merge-delimiter', type=str, default=' ')
     parser.add_argument('--no-merge-delimiter', action='store_true')
