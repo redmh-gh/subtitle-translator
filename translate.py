@@ -8,15 +8,20 @@ import subprocess
 import logging
 import string
 
+import ollama
+
 class SubtitleTranslator:
-    def __init__(self, input_file: str, output_file: str, chunk_size: int = 30, max_concurrent: int = 10, context_size: int = 3, split_retry: int = 3, keep_punctuation: bool = False):
+    def __init__(self, input_file: str, output_file: str, model_type: str, chunk_size: int = 30, max_concurrent: int = 10, context_size: int = 3, split_retry: int = 3, keep_punctuation: bool = False):
         self.input_file = Path(input_file)
         self.output_file = Path(output_file)
+        self.model_type = model_type
         self.chunk_size = chunk_size
         self.max_concurrent = max_concurrent
         self.context_size = context_size
         self.split_retry = split_retry
         self.keep_punctuation = keep_punctuation
+
+        self.ollama_client = ollama.AsyncClient()
         
         # 添加缓存相关的属性
         self.cache_dir = Path(".translate_cache")
@@ -232,26 +237,47 @@ I'm fine, thank you!
                 translation=translated_text
             )
             
-            process = await asyncio.create_subprocess_exec(
-                'guru',
-                '--renderer', 'text',
-                '-n',
-                '--chatgpt.stream=false',
-                '--chatgpt.temperature=1.3',
-                '--chatgpt.max_tokens=8192',
-                prompt,
-                stdin=asyncio.subprocess.PIPE,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
-            
-            stdout, stderr = await process.communicate()
-            
-            if process.returncode != 0:
+            # process = await asyncio.create_subprocess_exec(
+            #     'guru',
+            #     '--renderer', 'text',
+            #     '-n',
+            #     '--chatgpt.stream=false',
+            #     '--chatgpt.temperature=1.3',
+            #     '--chatgpt.max_tokens=8192',
+            #     prompt,
+            #     stdin=asyncio.subprocess.PIPE,
+            #     stdout=asyncio.subprocess.PIPE,
+            #     stderr=asyncio.subprocess.PIPE
+            # )
+
+            try:
+                stdout = await self.ollama_client.chat(
+                    model=self.model_type,
+                    messages=[
+                        {
+                            'role': 'user',
+                            'content': prompt,
+                        },
+                    ],
+                    options={
+                        'temperature': 1.3,
+                        'num_predict': 8192,
+                    },
+                    stream=False
+                )
+            except Exception as e:
                 print("质量评估失败!")
-                raise Exception(f"质量评估命令执行失败: {stderr.decode('utf-8')}")
+                raise Exception(f"质量评估命令执行失败: {e}")
             
-            response = stdout.decode('utf-8').strip()
+            # stdout, stderr = await process.communicate()
+            
+            # if process.returncode != 0:
+            #     print("质量评估失败!")
+            #     raise Exception(f"质量评估命令执行失败: {stderr.decode('utf-8')}")
+            
+            # response = stdout.decode('utf-8').strip()
+
+            response = stdout['message']['content'].strip()
             
             # 解析评分和建议
             score_match = re.search(r'<score>(.*?)</score>', response)
@@ -458,26 +484,45 @@ I'm fine, thank you!
 {last_suggestion}
 """
                 
-                process = await asyncio.create_subprocess_exec(
-                    'guru',
-                    '--renderer', 'text',
-                    '-n',
-                    '--chatgpt.stream=false',
-                    '--chatgpt.temperature=1.3',
-                    '--chatgpt.max_tokens=8192',
-                    full_prompt,
-                    stdin=asyncio.subprocess.PIPE,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE
-                )
+                # process = await asyncio.create_subprocess_exec(
+                #     'guru',
+                #     '--renderer', 'text',
+                #     '-n',
+                #     '--chatgpt.stream=false',
+                #     '--chatgpt.temperature=1.3',
+                #     '--chatgpt.max_tokens=8192',
+                #     full_prompt,
+                #     stdin=asyncio.subprocess.PIPE,
+                #     stdout=asyncio.subprocess.PIPE,
+                #     stderr=asyncio.subprocess.PIPE
+                # )
+
+                try:
+                    stdout = await self.ollama_client.chat(
+                        model=self.model_type,
+                        messages=[
+                            {
+                                'role': 'user',
+                                'content': full_prompt,
+                            },
+                        ],
+                        options={
+                            'temperature': 1.3,
+                            'num_predict': 8192,
+                        },
+                        stream=False
+                    )
+                except Exception as e:
+                    raise Exception(f"翻译命令执行失败: {e}")
                 
-                stdout, stderr = await process.communicate(subtitle_text.encode('utf-8'))
+                # stdout, stderr = await process.communicate(subtitle_text.encode('utf-8'))
                 
-                if process.returncode != 0:
-                    raise Exception(f"翻译命令执行失败: {stderr.decode('utf-8')}")
+                # if process.returncode != 0:
+                #     raise Exception(f"翻译命令执行失败: {stderr.decode('utf-8')}")
                 
                 # 处理翻译返回的文本，去除每行末尾的空白字符
-                translated_text = stdout.decode('utf-8')
+                # translated_text = stdout.decode('utf-8')
+                translated_text = stdout['message']['content']
                 translated_text = '\n'.join(line.rstrip() for line in translated_text.splitlines())
                 
                 # 验证翻译结果格式
@@ -592,6 +637,7 @@ async def main():
     parser = argparse.ArgumentParser(description='字幕翻译工具')
     parser.add_argument('input_file', help='输入字幕文件路径')
     parser.add_argument('output_file', help='输出字幕文件路径')
+    parser.add_argument('model_type', help='翻译模型')
     parser.add_argument('--chunk-size', type=int, default=30, help='每次翻译的字幕数量(默认: 30)')
     parser.add_argument('--max-concurrent', type=int, default=10, help='最大并发数(默认: 10)')
     parser.add_argument('--context-size', type=int, default=0, help='翻译时包含的上下文字幕数量(默认: 0)')
@@ -602,7 +648,8 @@ async def main():
 
     translator = SubtitleTranslator(
         input_file=args.input_file,
-        output_file=args.output_file, 
+        output_file=args.output_file,
+        model_type=args.args,
         chunk_size=args.chunk_size,
         max_concurrent=args.max_concurrent,
         context_size=args.context_size,
