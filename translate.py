@@ -11,10 +11,10 @@ import string
 import ollama
 
 class SubtitleTranslator:
-    def __init__(self, input_file: str, output_file: str, model_type: str, chunk_size: int = 30, max_concurrent: int = 10, context_size: int = 3, split_retry: int = 3, keep_punctuation: bool = False):
+    def __init__(self, input_file: str, output_file: str, model_name: str, chunk_size: int = 30, max_concurrent: int = 10, context_size: int = 3, split_retry: int = 3, keep_punctuation: bool = False):
         self.input_file = Path(input_file)
         self.output_file = Path(output_file)
-        self.model_type = model_type
+        self.model_name = model_name
         self.chunk_size = chunk_size
         self.max_concurrent = max_concurrent
         self.context_size = context_size
@@ -252,7 +252,7 @@ I'm fine, thank you!
 
             try:
                 stdout = await self.ollama_client.chat(
-                    model=self.model_type,
+                    model=self.model_name,
                     messages=[
                         {
                             'role': 'user',
@@ -499,7 +499,7 @@ I'm fine, thank you!
 
                 try:
                     stdout = await self.ollama_client.chat(
-                        model=self.model_type,
+                        model=self.model_name,
                         messages=[
                             {
                                 'role': 'user',
@@ -637,7 +637,7 @@ async def main():
     parser = argparse.ArgumentParser(description='字幕翻译工具')
     parser.add_argument('input_file', help='输入字幕文件路径')
     parser.add_argument('output_file', help='输出字幕文件路径')
-    parser.add_argument('model_type', help='翻译模型')
+    parser.add_argument('model_name', help='​​模型名称')
     parser.add_argument('--chunk-size', type=int, default=30, help='每次翻译的字幕数量(默认: 30)')
     parser.add_argument('--max-concurrent', type=int, default=10, help='最大并发数(默认: 10)')
     parser.add_argument('--context-size', type=int, default=0, help='翻译时包含的上下文字幕数量(默认: 0)')
@@ -649,7 +649,7 @@ async def main():
     translator = SubtitleTranslator(
         input_file=args.input_file,
         output_file=args.output_file,
-        model_type=args.model_type,
+        model_name=args.model_name,
         chunk_size=args.chunk_size,
         max_concurrent=args.max_concurrent,
         context_size=args.context_size,
