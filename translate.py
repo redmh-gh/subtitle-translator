@@ -649,7 +649,7 @@ async def main():
     translator = SubtitleTranslator(
         input_file=args.input_file,
         output_file=args.output_file,
-        model_type=args.args,
+        model_type=args.model_type,
         chunk_size=args.chunk_size,
         max_concurrent=args.max_concurrent,
         context_size=args.context_size,
