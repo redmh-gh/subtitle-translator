@@ -263,7 +263,8 @@ I'm fine, thank you!
                         'temperature': 1.3,
                         'num_predict': 8192,
                     },
-                    stream=False
+                    stream=False,
+                    think=True
                 )
             except Exception as e:
                 print("质量评估失败!")
@@ -510,7 +511,8 @@ I'm fine, thank you!
                             'temperature': 1.3,
                             'num_predict': 8192,
                         },
-                        stream=False
+                        stream=False,
+                        think=True
                     )
                 except Exception as e:
                     raise Exception(f"翻译命令执行失败: {e}")
